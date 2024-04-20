@@ -1281,11 +1281,20 @@ module.exports = grammar({
     string_literal: $ => seq(
       choice('L"', 'u"', 'U"', 'u8"', '"'),
       repeat(choice(
-        alias(token.immediate(prec(1, /[^\\"\n]+/)), $.string_content),
+        alias(token.immediate(prec(1, /[^\\"\n\\%]+/)), $.string_content),
+        alias(token.immediate(/%/), $.string_content),
         $.escape_sequence,
+        $.format_string,
       )),
       '"',
     ),
+
+    format_string: ($) => token.immediate(seq(
+      '%',
+      optional(/[#0-\\ +\\']*/),
+      optional(/[\d]*[\\.]*[\d]*/),
+      optional(/(hh|h|l|ll|j|t|z|q|G|L)?/),
+      /[diouxXDOUeEfFgGaACcSspn%]/)),
 
     escape_sequence: _ => token(prec(1, seq(
       '\\',
